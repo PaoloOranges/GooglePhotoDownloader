@@ -1,6 +1,5 @@
 
 import os
-from googleapiclient.discovery import build
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow, Flow
@@ -12,9 +11,11 @@ from flask_session import Session               ## pip install Flask-Session
 import google.oauth2.credentials                ## Used by Google OAuth
 import google_auth_oauthlib.flow                ## Used by Google OAuth
 from googleapiclient.discovery import build     ## Used by Google OAuth
+from google.auth.transport.requests import AuthorizedSession
 
 SCOPES = ['https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/photoslibrary.readonly',
         "openid"]
 
 # SCOPES = 'https://www.googleapis.com/auth/photoslibrary.readonly'
@@ -33,7 +34,7 @@ def main():
     
 @app.route("/home")
 def home():
-    if "credentials" not in session:    ## If not logged in
+    if "credentials-dict" not in session:    ## If not logged in
         return redirect("authorize")    ## Start the login process
     elif "user" in session:             ## If we are logged in
                                         ## Return a customised index page
@@ -52,10 +53,10 @@ def credentials_to_dict(credentials):
 ## Used by Google OAuth
 @app.route("/login")
 def login():
-    if "credentials" not in session:
+    if "credentials-dict" not in session:
         return redirect("authorize")
     else:
-        return redirect("/")
+        return redirect("home")
 
 ## Used by Google OAuth
 @app.route("/authorize")
@@ -76,13 +77,64 @@ def oauth2callback():
     # Use authorisation code to request credentials from Google
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
-    session['credentials'] = credentials_to_dict(credentials)
+    session['credentials'] = credentials
+    session['credentials-dict'] = credentials_to_dict(credentials)
     # Use the credentials to obtain user information and save it to the session
     oauth2_client = build('oauth2','v2',credentials=credentials)
     user_info= oauth2_client.userinfo().get().execute()
     session['user'] = user_info
     # Return to main page
     return redirect("home")
+
+@app.route("/list-pics")
+def list_pics_route():
+    if "credentials" not in session:    ## If not logged in
+        return redirect("authorize")    ## Start the login process
+    else:
+        return list_pics(session['credentials'])
+
+def list_pics(credentials):
+    authed_session = AuthorizedSession(credentials)
+    nextPageToken = None
+    idx = 0
+    media_items = []
+    while True:
+        idx += 1
+        print(idx)
+        
+        response = authed_session.post(
+            'https://photoslibrary.googleapis.com/v1/mediaItems:search', 
+            headers = { 'content-type': 'application/json' },
+            json={ 
+                "pageSize": 100,
+                "pageToken": nextPageToken,
+                "filters": {
+                    "dateFilter": {
+                        "ranges": [{ 
+                            "startDate": {
+                                "year": 2023,
+                                "month": 1,
+                                "day": 1,
+                            },
+                            "endDate": {
+                                "year": 2023,
+                                "month": 1,
+                                "day": 26,
+                            }
+                        }]
+                    }
+                }
+            })
+        
+        response_json = response.json()
+        media_items += response_json["mediaItems"]
+        
+        if not "nextPageToken" in response_json:
+            break
+            
+        nextPageToken = response_json["nextPageToken"]
+
+    return media_items
 
 def main():   
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
