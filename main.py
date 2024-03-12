@@ -4,7 +4,7 @@ import os
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow, Flow
 
-from flask import Flask, redirect, url_for, request, session
+from flask import Flask, redirect, url_for, render_template, request, session
 
 
 from flask_session import Session               ## pip install Flask-Session
@@ -31,14 +31,23 @@ Session(app)
 @app.route("/")
 def main():
     return redirect("home")
-    
-@app.route("/home")
+
+
+def render_home():
+    return render_template('home.html', name=session['user']['name'])
+
+@app.route("/home", methods=['GET', 'POST'])
 def home():
     if "credentials-dict" not in session:    ## If not logged in
         return redirect("authorize")    ## Start the login process
     elif "user" in session:             ## If we are logged in
                                         ## Return a customised index page
-        return "Session: " + session['user']['name']
+        form=request.form
+        if request.method == 'POST':
+            print(form)
+
+        return render_template('home.html', name=session['user']['name'])
+        
 
 ## Used by Google OAuth
 def credentials_to_dict(credentials):
@@ -139,39 +148,6 @@ def list_pics(credentials):
 def main():   
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     app.run(debug=True) 
-
-    # token_file_path = join(dirname(__file__), 'token-for-google.json')
-    # flow = InstalledAppFlow.from_client_secrets_file('client_secrets.json', scopes=[SCOPES])
-    
-    # flow.run_local_server()
-
-    # print(flow.credentials)
-
-    # flow = Flow.from_client_secrets_file('client_secrets.json', scopes=[SCOPES], redirect_uri='urn:ietf:wg:oauth:2.0:oob')
-    # auth_uri = flow.authorization_url()
-    # print(auth_uri)
-    # webbrowser.open(auth_uri[0])
-    # store = file.Storage(join(dirname(__file__), 'token-for-google.json'))
-    # creds = store.get()
-    # if not creds or creds.invalid:
-    #     flow = client.flow_from_clientsecrets(join(dirname(__file__), 'client_id.json', SCOPES))
-    #     creds = tools.run_flow(flow, store)
-    # google_photos = build('photoslibrary', 'v1', http=creds.authorize(Http()))
-
-    # day, month, year = ('0', '6', '2019')  # Day or month may be 0 => full month resp. year
-    # date_filter = [{"day": day, "month": month, "year": year}]  # No leading zeroes for day an month!
-    # nextpagetoken = 'Dummy'
-    # while nextpagetoken != '':
-    #     nextpagetoken = '' if nextpagetoken == 'Dummy' else nextpagetoken
-    #     results = google_photos.mediaItems().search(
-    #             body={"filters":  {"dateFilter": {"dates": [{"day": day, "month": month, "year": year}]}},
-    #                 "pageSize": 10, "pageToken": nextpagetoken}).execute()
-    #     # The default number of media items to return at a time is 25. The maximum pageSize is 100.
-    #     items = results.get('mediaItems', [])
-    #     nextpagetoken = results.get('nextPageToken', '')
-    #     for item in items:
-    #             print(f"{item['filename']} {item['mimeType']} '{item.get('description', '- -')}'"
-    #                     f" {item['mediaMetadata']['creationTime']}\nURL: {item['productUrl']}")
 
 if __name__ == "__main__":
     main()
