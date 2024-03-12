@@ -32,20 +32,12 @@ Session(app)
 def main():
     return redirect("home")
 
-
-def render_home():
-    return render_template('home.html', name=session['user']['name'])
-
-@app.route("/home", methods=['GET', 'POST'])
+@app.route("/home")
 def home():
     if "credentials-dict" not in session:    ## If not logged in
         return redirect("authorize")    ## Start the login process
     elif "user" in session:             ## If we are logged in
                                         ## Return a customised index page
-        form=request.form
-        if request.method == 'POST':
-            print(form)
-
         return render_template('home.html', name=session['user']['name'])
         
 
@@ -95,14 +87,25 @@ def oauth2callback():
     # Return to main page
     return redirect("home")
 
-@app.route("/list-pics")
+@app.route("/list-pics", methods=['GET', 'POST'])
 def list_pics_route():
     if "credentials" not in session:    ## If not logged in
         return redirect("authorize")    ## Start the login process
     else:
-        return list_pics(session['credentials'])
+        form=request.form
+        if request.method == 'POST':
+            print(form)
+            from_year=form['from_year']
+            from_month=form['from_month']
+            to_year=form['to_year']
+            to_month=form['to_month']
+        return list_pics(session['credentials'], from_year, from_month, to_year, to_month)
 
-def list_pics(credentials):
+def list_pics(credentials, from_year, from_month, to_year, to_month):
+
+    if to_year < from_year:
+        return "ERROR From Year must be lower or equal than To Year"
+    
     authed_session = AuthorizedSession(credentials)
     nextPageToken = None
     idx = 0
@@ -121,14 +124,14 @@ def list_pics(credentials):
                     "dateFilter": {
                         "ranges": [{ 
                             "startDate": {
-                                "year": 2023,
-                                "month": 1,
+                                "year": from_year,
+                                "month": from_month,
                                 "day": 1,
                             },
                             "endDate": {
-                                "year": 2023,
-                                "month": 1,
-                                "day": 26,
+                                "year": to_year,
+                                "month": to_month,
+                                "day": 1,
                             }
                         }]
                     }
