@@ -1,11 +1,10 @@
 
 import os
+import requests
 
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow, Flow
+from pathlib import Path
 
 from flask import Flask, redirect, url_for, render_template, request, session
-
 
 from flask_session import Session               ## pip install Flask-Session
 import google.oauth2.credentials                ## Used by Google OAuth
@@ -20,6 +19,8 @@ SCOPES = ['https://www.googleapis.com/auth/userinfo.email',
 
 # SCOPES = 'https://www.googleapis.com/auth/photoslibrary.readonly'
 CLIENT_SECRETS_FILE = 'client_secrets.json'
+
+PICS_DOWNLOAD_FOLDER='DownloadedPics'
 
 app = Flask(__name__)
 #app.config['SECRET_KEY'] = 'esdirolftjg rdsklthjrm,gme jkm2mw,3 werkj hswedf kdsjkh'
@@ -87,22 +88,10 @@ def oauth2callback():
     # Return to main page
     return redirect("home")
 
-@app.route("/list-pics", methods=['GET', 'POST'])
-def list_pics_route():
-    if "credentials" not in session:    ## If not logged in
-        return redirect("authorize")    ## Start the login process
-    else:
-        form=request.form
-        if request.method == 'POST':
-            print(form)
-            from_year=form['from_year']
-            from_month=form['from_month']
-            to_year=form['to_year']
-            to_month=form['to_month']
-        return list_pics(session['credentials'], from_year, from_month, to_year, to_month)
+def format_media_items(media_items):
+    return media_items
 
 def list_pics(credentials, from_year, from_month, to_year, to_month):
-
     if to_year < from_year:
         return "ERROR From Year must be lower or equal than To Year"
     
@@ -112,8 +101,7 @@ def list_pics(credentials, from_year, from_month, to_year, to_month):
     media_items = []
     while True:
         idx += 1
-        print(idx)
-        
+
         response = authed_session.post(
             'https://photoslibrary.googleapis.com/v1/mediaItems:search', 
             headers = { 'content-type': 'application/json' },
@@ -148,6 +136,49 @@ def list_pics(credentials, from_year, from_month, to_year, to_month):
 
     return media_items
 
+def download_image(item, download_folder):
+    width=item['mediaMetadata']['width']
+    height=item['mediaMetadata']['height']
+    base_url = item['baseUrl']
+    file_name = item['filename']
+
+    image_url=base_url + "=w" + width + "-h" + height
+
+    img_data = requests.get(image_url).content
+    with open(os.path.join(download_folder, file_name), 'wb') as f:
+        f.write(img_data)
+        f.close()
+
+def download_pics(credentials, from_year, from_month, to_year, to_month):    
+    media_items = list_pics(credentials, from_year, from_month, to_year, to_month)    
+
+    Path(PICS_DOWNLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
+    
+    for item in media_items:
+        download_image(item, PICS_DOWNLOAD_FOLDER)
+
+    return media_items
+
+
+@app.route("/list-pics", methods=['GET', 'POST'])
+def list_pics_route():
+    if "credentials" not in session:    ## If not logged in
+        return redirect("authorize")    ## Start the login process
+    else:
+        form=request.form
+        credentials=session['credentials']
+        if request.method == 'POST':
+            print(form)
+            from_year=form['from_year']
+            from_month=form['from_month']
+            to_year=form['to_year']
+            to_month=form['to_month']
+            if request.form['submit_button'] == "List":
+                return list_pics(credentials, from_year, from_month, to_year, to_month)
+            elif request.form['submit_button'] == "Download":
+                return download_pics(credentials, from_year, from_month, to_year, to_month)            
+        
+    
 def main():   
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     app.run(debug=True) 
