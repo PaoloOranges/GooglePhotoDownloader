@@ -1,6 +1,7 @@
 
 import os
 import requests
+import re
 
 from pathlib import Path
 
@@ -142,20 +143,49 @@ def download_image(item, download_folder):
     base_url = item['baseUrl']
     file_name = item['filename']
 
-    image_url=base_url + "=w" + width + "-h" + height
+    image_url=base_url + "=w" + width + "-h" + height + "-d" #-d download description
 
+    local_filename = os.path.join(download_folder, file_name)
     img_data = requests.get(image_url).content
-    with open(os.path.join(download_folder, file_name), 'wb') as f:
+    with open(local_filename, 'wb') as f:
         f.write(img_data)
         f.close()
+
+def download_video(item, download_folder):
+    width=item['mediaMetadata']['width']
+    height=item['mediaMetadata']['height']
+    base_url = item['baseUrl']
+    file_name = item['filename']
+    
+    video_url=base_url + '=dv' #-d download description
+
+    local_filename = os.path.join(download_folder, file_name)
+
+    with requests.get(video_url, stream=True) as r:
+        r.raise_for_status()
+        with open(local_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192): 
+                # If you have chunk encoded response uncomment if
+                # and set chunk_size parameter to None.
+                #if chunk: 
+                f.write(chunk)
+            f.close()
 
 def download_pics(credentials, from_year, from_month, to_year, to_month):    
     media_items = list_pics(credentials, from_year, from_month, to_year, to_month)    
 
     Path(PICS_DOWNLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
-    
+    image_regex = r'image\/[\w\d]*'
+    video_regex = r'video\/[\w\d]*'
+
     for item in media_items:
-        download_image(item, PICS_DOWNLOAD_FOLDER)
+        mime_type = item['mimeType']
+        if re.match(image_regex, mime_type):
+            download_image(item, PICS_DOWNLOAD_FOLDER)
+        elif re.match(video_regex, mime_type):
+            download_video(item, PICS_DOWNLOAD_FOLDER)
+        else:
+            print("error mimetype " + mime_type + " not recognized")
 
     return media_items
 
