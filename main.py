@@ -13,12 +13,8 @@ import google_auth_oauthlib.flow                ## Used by Google OAuth
 from googleapiclient.discovery import build     ## Used by Google OAuth
 from google.auth.transport.requests import AuthorizedSession
 
-SCOPES = ['https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/photoslibrary.readonly',
-        "openid"]
+SCOPES = ['https://www.googleapis.com/auth/photoslibrary.readonly']
 
-# SCOPES = 'https://www.googleapis.com/auth/photoslibrary.readonly'
 CLIENT_SECRETS_FILE = 'client_secrets.json'
 
 PICS_DOWNLOAD_FOLDER='DownloadedPics'
