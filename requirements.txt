@@ -2,8 +2,6 @@ google-api-python-client
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
-flask
-Flask-Session
 inquirer
 halo
 alive-progress
