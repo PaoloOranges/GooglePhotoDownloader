@@ -50,6 +50,10 @@ class GooglePhotosApi:
         
         return self.cred
 
-# initialize photos api and create service
-google_photos_api = GooglePhotosApi()
-creds = google_photos_api.run_local_server()
+def main():
+    # initialize photos api and create service
+    google_photos_api = GooglePhotosApi()
+    creds = google_photos_api.run_local_server()
+
+if __name__ == "__main__":
+    main()
