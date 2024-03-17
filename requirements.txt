@@ -6,3 +6,4 @@ flask
 Flask-Session
 inquirer
 halo
+alive-progress

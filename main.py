@@ -2,9 +2,12 @@ import pickle
 import os
 import inquirer
 import requests
+import re
 
+from pathlib import Path
 from datetime import date, timedelta
 from halo import Halo
+from alive_progress import alive_bar
 
 from google_auth_oauthlib.flow import Flow, InstalledAppFlow
 from google.auth.transport.requests import AuthorizedSession
@@ -94,20 +97,78 @@ list_questions = [
         ),
     ]
 
-def download_media():
-    print("Download")
+download_questions = list_questions + [
+    inquirer.Path(
+        "Download Path",
+        message="Where the file should be downloaded",
+        default="DownloadedMedia",
+        exists=False, 
+        path_type=inquirer.Path.DIRECTORY
+    )
+]
 
-def list_media():
-    answers = inquirer.prompt(list_questions)
+def download_image(item, download_folder):
+    width=item['mediaMetadata']['width']
+    height=item['mediaMetadata']['height']
+    base_url = item['baseUrl']
+    file_name = item['filename']
+
+    image_url=base_url + "=w" + width + "-h" + height + "-d" #-d download description
+
+    local_filename = os.path.join(download_folder, file_name)
+    img_data = requests.get(image_url).content
+    with open(local_filename, 'wb') as f:
+        f.write(img_data)
+        f.close()
+
+def download_video(item, download_folder):
+    base_url = item['baseUrl']
+    file_name = item['filename']
+    
+    video_url=base_url + '=dv' #-d download description
+
+    local_filename = os.path.join(download_folder, file_name)
+
+    with requests.get(video_url, stream=True) as r:
+        r.raise_for_status()
+        with open(local_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192): 
+                # If you have chunk encoded response uncomment if
+                # and set chunk_size parameter to None.
+                #if chunk: 
+                f.write(chunk)
+            f.close()
+
+def download_media():
+    answers = inquirer.prompt(download_questions)
     from_year = answers.get("From Year")
     from_month = answers.get("From Month")
     to_year = answers.get("To Year")
     to_month = answers.get("To Month")
 
+    media_items = list_media(from_year, from_month, to_year, to_month)
+
+    download_folder = answers.get("Download Path")
+    Path(download_folder).mkdir(parents=True, exist_ok=True)
+    image_regex = r'image\/[\w\d]*'
+    video_regex = r'video\/[\w\d]*'
+
+    with alive_bar(len(media_items)) as bar:
+        for item in media_items:
+            mime_type = item['mimeType']
+            if re.match(image_regex, mime_type):
+                download_image(item, download_folder)
+            elif re.match(video_regex, mime_type):
+                download_video(item, download_folder)
+            else:
+                print("error mimetype " + mime_type + " not recognized")
+            bar()
+
+
+
+def list_media(from_year, from_month, to_year, to_month):
     from_date = date(int(from_year), int(from_month), 1)
     to_date = date(int(to_year), int(to_month), 1) - timedelta(days=1)
-
-    print(str(from_date) + " " + str(to_date))
 
     if to_date < from_date:
         print("ERROR To Date shoult be later than from date")
@@ -159,10 +220,20 @@ def list_media():
             
         nextPageToken = response_json["nextPageToken"]
     
-    spinner.stop()
+    spinner.stop()   
+    
+    return media_items
+
+def print_list_media():
+    answers = inquirer.prompt(list_questions)
+    from_year = answers.get("From Year")
+    from_month = answers.get("From Month")
+    to_year = answers.get("To Year")
+    to_month = answers.get("To Month")
+
+    media_items = list_media(from_year, from_month, to_year, to_month)
     for media_item in media_items:
         print(media_item['filename'])
-
 
 LIST_MEDIA_ACTION = "List Media" 
 DOWNLOAD_MEDIA_ACTION = "Download Media"
@@ -174,26 +245,6 @@ main_questions = [
             message="Please select an action",
             choices=[LIST_MEDIA_ACTION, DOWNLOAD_MEDIA_ACTION, EXIT_ACTION],
         ),
-        # inquirer.Text("user", message="Please enter your github username", validate=lambda _, x: x != "."),
-        # inquirer.Password("password", message="Please enter your password"),
-        # inquirer.Text("repo", message="Please enter the repo name", default="default"),
-        # inquirer.Checkbox(
-        #     "topics",
-        #     message="Please define your type of project?",
-        #     choices=["common", "backend", "frontend"],
-        # ),
-        # inquirer.Text(
-        #     "organization",
-        #     message=(
-        #         "If this is a repo from a organization please enter the organization name,"
-        #         " if not just leave this blank"
-        #     ),
-        # ),
-        # inquirer.Confirm(
-        #     "correct",
-        #     message="This will delete all your current labels and create a new ones. Continue?",
-        #     default=False,
-        # ),
     ]
 
 def main():
@@ -207,7 +258,7 @@ def main():
             print("Exiting")
             running = False
         elif action==LIST_MEDIA_ACTION:
-            list_media()
+            print_list_media()
         elif action==DOWNLOAD_MEDIA_ACTION:
             download_media()
 
