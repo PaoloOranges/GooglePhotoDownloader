@@ -52,17 +52,47 @@ class GooglePhotosApi:
         
         return self.cred
 
+google_credentials=None
 
 def authorize_google():
     # initialize photos api and create service
     google_photos_api = GooglePhotosApi()
-    creds = google_photos_api.run_local_server()
+    google_credentials = google_photos_api.run_local_server()
+
+def has_auth():
+    return google_credentials != None
+
+def init_google_auth():
+    if has_auth():
+        authorize_google()
+
+list_questions = [
+    inquirer.Text(
+            "From Year",
+            message="Provide the starting YEAR to process"
+            ),
+    inquirer.List(
+            "From Month",
+            message="Provide the starting MONTH to process",
+            choices=list(range(1,13))
+            ),
+    inquirer.Text(
+            "To Year",
+            message="Provide the ending YEAR to process",
+            ),
+    inquirer.List(
+            "To Month",
+            message="Provide the ending MONTH [NOT INCLUDED] to process",
+            choices=list(range(1,13))
+        ),
+    ]
 
 def download_media():
     print("Download")
 
 def list_media():
-    print("List")
+    answers = inquirer.prompt(list_questions)
+    print(answers)
 
 LIST_MEDIA_ACTION = "List Media" 
 DOWNLOAD_MEDIA_ACTION = "Download Media"
@@ -97,6 +127,7 @@ main_questions = [
     ]
 
 def main():
+    init_google_auth()
     running = True
     while running:
         answers = inquirer.prompt(main_questions)
