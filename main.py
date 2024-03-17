@@ -6,6 +6,8 @@ from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 import requests
 
+import inquirer
+
 class GooglePhotosApi:
     def __init__(self,
                  api_name = 'photoslibrary',
@@ -50,10 +52,63 @@ class GooglePhotosApi:
         
         return self.cred
 
-def main():
+
+def authorize_google():
     # initialize photos api and create service
     google_photos_api = GooglePhotosApi()
     creds = google_photos_api.run_local_server()
+
+def download_media():
+    print("Download")
+
+def list_media():
+    print("List")
+
+LIST_MEDIA_ACTION = "List Media" 
+DOWNLOAD_MEDIA_ACTION = "Download Media"
+EXIT_ACTION = "Exit"
+
+main_questions = [
+        inquirer.List(
+            "Action",
+            message="Please select an action",
+            choices=[LIST_MEDIA_ACTION, DOWNLOAD_MEDIA_ACTION, EXIT_ACTION],
+        ),
+        # inquirer.Text("user", message="Please enter your github username", validate=lambda _, x: x != "."),
+        # inquirer.Password("password", message="Please enter your password"),
+        # inquirer.Text("repo", message="Please enter the repo name", default="default"),
+        # inquirer.Checkbox(
+        #     "topics",
+        #     message="Please define your type of project?",
+        #     choices=["common", "backend", "frontend"],
+        # ),
+        # inquirer.Text(
+        #     "organization",
+        #     message=(
+        #         "If this is a repo from a organization please enter the organization name,"
+        #         " if not just leave this blank"
+        #     ),
+        # ),
+        # inquirer.Confirm(
+        #     "correct",
+        #     message="This will delete all your current labels and create a new ones. Continue?",
+        #     default=False,
+        # ),
+    ]
+
+def main():
+    running = True
+    while running:
+        answers = inquirer.prompt(main_questions)
+        action = answers.get("Action")
+
+        if action == EXIT_ACTION:
+            print("Exiting")
+            running = False
+        elif action==LIST_MEDIA_ACTION:
+            list_media()
+        elif action==DOWNLOAD_MEDIA_ACTION:
+            download_media()
 
 if __name__ == "__main__":
     main()
