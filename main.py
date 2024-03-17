@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from halo import Halo
 from alive_progress import alive_bar
 
-from google_auth_oauthlib.flow import Flow, InstalledAppFlow
+from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import AuthorizedSession
 
 from googleapiclient.discovery import build
