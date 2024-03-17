@@ -1,12 +1,18 @@
 import pickle
 import os
+import inquirer
+import requests
+
+from datetime import date, timedelta
+from halo import Halo
+
 from google_auth_oauthlib.flow import Flow, InstalledAppFlow
+from google.auth.transport.requests import AuthorizedSession
+
 from googleapiclient.discovery import build
 #from googleapiclient.http import MediaFileUpload
 from google.auth.transport.requests import Request
-import requests
 
-import inquirer
 
 class GooglePhotosApi:
     def __init__(self,
@@ -56,14 +62,15 @@ google_credentials=None
 
 def authorize_google():
     # initialize photos api and create service
+    global google_credentials
     google_photos_api = GooglePhotosApi()
-    google_credentials = google_photos_api.run_local_server()
+    google_credentials = google_photos_api.run_local_server()    
 
 def has_auth():
     return google_credentials != None
 
 def init_google_auth():
-    if has_auth():
+    if not has_auth():
         authorize_google()
 
 list_questions = [
@@ -92,7 +99,70 @@ def download_media():
 
 def list_media():
     answers = inquirer.prompt(list_questions)
-    print(answers)
+    from_year = answers.get("From Year")
+    from_month = answers.get("From Month")
+    to_year = answers.get("To Year")
+    to_month = answers.get("To Month")
+
+    from_date = date(int(from_year), int(from_month), 1)
+    to_date = date(int(to_year), int(to_month), 1) - timedelta(days=1)
+
+    print(str(from_date) + " " + str(to_date))
+
+    if to_date < from_date:
+        print("ERROR To Date shoult be later than from date")
+        return
+    
+    if google_credentials == None:
+        print("ERROR Google Credentials not set")
+        return
+    
+    spinner = Halo(text='Loading', spinner='dots')
+    spinner.start()
+
+    authed_session = AuthorizedSession(google_credentials)
+    nextPageToken = None
+    idx = 0
+    media_items = []
+    while True:
+        idx += 1
+
+        response = authed_session.post(
+            'https://photoslibrary.googleapis.com/v1/mediaItems:search', 
+            headers = { 'content-type': 'application/json' },
+            json={ 
+                "pageSize": 100,
+                "pageToken": nextPageToken,
+                "filters": {
+                    "dateFilter": {
+                        "ranges": [{ 
+                            "startDate": {
+                                "year": from_year,
+                                "month": from_month,
+                                "day": 1,
+                            },
+                            "endDate": {
+                                "year": to_year,
+                                "month": to_month,
+                                "day": 1,
+                            }
+                        }]
+                    }
+                }
+            })
+        
+        response_json = response.json()
+        media_items += response_json["mediaItems"]
+        
+        if not "nextPageToken" in response_json:
+            break
+            
+        nextPageToken = response_json["nextPageToken"]
+    
+    spinner.stop()
+    for media_item in media_items:
+        print(media_item['filename'])
+
 
 LIST_MEDIA_ACTION = "List Media" 
 DOWNLOAD_MEDIA_ACTION = "Download Media"

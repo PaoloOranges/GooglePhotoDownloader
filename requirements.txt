@@ -5,3 +5,4 @@ google-auth-httplib2
 flask
 Flask-Session
 inquirer
+halo
