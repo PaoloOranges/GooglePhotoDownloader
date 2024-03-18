@@ -1,0 +1,21 @@
+name: Build and publish standalone package
+
+on: 
+  release:
+    types: published
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install requirements pip
+        run: pip install -r requirements.txt
+      - name: Build 
+        run: pyinstaller -F main.py
+        
