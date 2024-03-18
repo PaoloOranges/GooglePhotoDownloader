@@ -40,7 +40,6 @@ jobs:
       with:
         path: my-artifact
         pattern: google-photo-downloader-artifacts-*
-        merge-multiple: true
     - run: ls -R my-artifact   
       
      # - name: Publish binary
