@@ -3,6 +3,7 @@ name: Build and publish standalone package
 on: 
   release:
     types: published
+  workflow-dispatch:
 
 jobs:
   build:
