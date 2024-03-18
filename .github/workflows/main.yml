@@ -22,6 +22,7 @@ jobs:
         run: pyinstaller -F main.py
       - name: Publish binary
         run: |
-          gh release upload ${{ github.ref_name }} ./dist/*
+          tar -czvf GooglePhotoDownloader.tar.gz ./dist/*
+          gh release upload ${{ github.ref_name }} GooglePhotoDownloader.tar.gz
         env:
           GITHUB_TOKEN: ${{ github.TOKEN }}        
