@@ -7,11 +7,12 @@ on:
 
 jobs:
   build:
-    matrix:
-      os:
-        - ubuntu-latest
-        - macos-latest
-        - windows-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
     permissions: write-all
     runs-on: ${{ matrix.os }}
     steps:
