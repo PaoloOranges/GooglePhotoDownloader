@@ -156,13 +156,21 @@ def download_media():
     with alive_bar(len(media_items)) as bar:
         for item in media_items:
             mime_type = item['mimeType']
-            if re.match(image_regex, mime_type):
-                download_image(item, download_folder)
-            elif re.match(video_regex, mime_type):
-                download_video(item, download_folder)
-            else:
-                print("error mimetype " + mime_type + " not recognized")
-            bar()
+            try:
+                if re.match(image_regex, mime_type):
+                    download_image(item, download_folder)
+                elif re.match(video_regex, mime_type):
+                    download_video(item, download_folder)
+                else:
+                    print("error mimetype " + mime_type + " not recognized")
+            except Exception as e: 
+                error_message="Error Downloading: " + item['filename']
+                print(error_message)
+                with open("error.log", 'a') as f:
+                    f.write(error_message + " error: " + e)
+                    f.close()
+            finally:
+                bar()
 
 
 
