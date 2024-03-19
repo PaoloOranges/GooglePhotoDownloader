@@ -50,7 +50,7 @@ jobs:
     - name: Zip artifacts
       run: | 
         for d in $ARTIFACT_PATH/*/ ; 
-          do zip -r $d.zip $d
+          do zip $d.zip $d
         done
         ls -R
     - name: Publish binary
