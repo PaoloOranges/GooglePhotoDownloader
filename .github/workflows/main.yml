@@ -54,6 +54,7 @@ jobs:
         done
     - name: Publish binary
       run: |
-        gh release upload ${{ github.ref_name }} *.zip
+        files=$(ls *.zip)
+        gh release upload ${{ github.ref_name }} $files
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}        
