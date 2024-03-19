@@ -52,6 +52,7 @@ jobs:
         for d in $ARTIFACT_PATH/*/ ; 
           do zip -r $d.zip $d
         done
+        ls -R
     - name: Publish binary
       run: |
         files=$(ls *.zip)
