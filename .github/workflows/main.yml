@@ -52,10 +52,8 @@ jobs:
         for d in $ARTIFACT_PATH/*/ ; 
           do zip -r $d.zip $d
         done
-
-     # - name: Publish binary
-   #     run: |
-    #      tar -czvf GooglePhotoDownloader.tar.gz ./dist/*
-     #     gh release upload ${{ github.ref_name }} GooglePhotoDownloader.tar.gz
-      #  env:
-      #    GITHUB_TOKEN: ${{ github.TOKEN }}        
+    - name: Publish binary
+      run: |
+        gh release upload ${{ github.ref_name }} *.zip
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}        
