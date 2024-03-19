@@ -43,12 +43,16 @@ jobs:
       with:
         path: ${{ env.ARTIFACT_PATH }}
         pattern: google-photo-downloader-artifacts-*
-    - run: |
-        ls -R $ARTIFACT_PATH
+    - name: Rename and list folder
+      run: |
         for d in $ARTIFACT_PATH/*/ ; do mv $d $(echo $d | sed "s/artifacts-//; s/-latest//; s/ubuntu/linux/"); done
         ls -R $ARTIFACT_PATH
-      
-      
+    - name: Zip artifacts
+      run: | 
+        for d in $ARTIFACT_PATH/*/ ; 
+          do zip -r $d.zip $d
+        done
+
      # - name: Publish binary
    #     run: |
     #      tar -czvf GooglePhotoDownloader.tar.gz ./dist/*
