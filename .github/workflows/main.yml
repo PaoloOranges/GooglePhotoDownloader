@@ -5,7 +5,10 @@ on:
     types: published
   workflow_dispatch:
 
-jobs:
+env:
+  ARTIFACT_PATH: project_artifacts    
+  
+jobs:  
   build:
     strategy:
       matrix:
@@ -13,7 +16,7 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-    permissions: write-all
+    permissions: write-all    
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -38,9 +41,13 @@ jobs:
     - name: Download All Artifacts
       uses: actions/download-artifact@v4
       with:
-        path: my-artifact
+        path: $ARTIFACT_PATH
         pattern: google-photo-downloader-artifacts-*
-    - run: ls -R my-artifact   
+    - run: |
+        ls -R $ARTIFACT_PATH
+        for d in $ARTIFACT_PATH/*/ ; do mv $d $(echo $d | sed "s/artifacts-//; s/-latest//; s/ubuntu/linux/"); done
+        ls -R $ARTIFACT_PATH
+      
       
      # - name: Publish binary
    #     run: |
