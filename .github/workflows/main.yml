@@ -34,6 +34,7 @@ jobs:
         with:          
           name: google-photo-downloader-artifacts-${{ matrix.os }}
           path: ./dist/*
+          retention-days: 2
   download:
     needs: build
     runs-on: ubuntu-latest
@@ -48,10 +49,13 @@ jobs:
         for d in $ARTIFACT_PATH/*/ ; do mv $d $(echo $d | sed "s/artifacts-//; s/-latest//; s/ubuntu/linux/"); done
         ls -R $ARTIFACT_PATH
     - name: Zip artifacts
-      run: | 
-        for d in $ARTIFACT_PATH/*/ ; 
-          do zip $d.zip $d
-        done
+      run: |
+        for d in $ARTIFACT_PATH/*; 
+          do 
+            if [ -d "$d" ]; 
+              then zip -r -j $d.zip $d; 
+            fi; 
+          done
         ls -R
     - name: Publish binary
       run: |
