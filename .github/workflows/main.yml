@@ -59,7 +59,7 @@ jobs:
         ls -R
     - name: Publish binary
       run: |
-        files=$(ls *.zip)
+        files=$(ls $ARTIFACT_PATH/*.zip)
         gh release upload ${{ github.ref_name }} $files
       env:
         GITHUB_TOKEN: ${{ github.TOKEN }}        
