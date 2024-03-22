@@ -167,7 +167,7 @@ def download_media():
                 error_message="Error Downloading: " + item['filename']
                 print(error_message)
                 with open("error.log", 'a') as f:
-                    f.write(error_message + " error: " + e)
+                    f.write(error_message + " error: " + str(e))
                     f.close()
             finally:
                 bar()
