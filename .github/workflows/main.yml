@@ -30,8 +30,7 @@ jobs:
       - name: Build 
         run: |
           python -m site --user-site
-          python -m site
-          which pyinstaller
+          ls $(python -m site --user-site)
           ls $(python -m site --user-site)/grapheme/data
           grapheme_file_to_include=$(python -m site --user-site)/grapheme/data/grapheme_break_property.json
           echo "this file $grapheme_file_to_include will be added"
