@@ -5,7 +5,12 @@ The CLI is interactive and guides you.
 
 The Main Menu is the following:
 
-![alt text](image.png)
+```
+[?] Please select an action: 
+ > List Media
+   Download Media
+   Exit
+```
 
 Both for *List Media* and *Download Media* the interactive CLI will ask a starting and an ending YEAR and MONTH. The system will list or download media from **1/START_MONTH/START_YEAR** to **1/END_MONTH/END_YEAR** - **1 DAY**
 
