@@ -10,11 +10,7 @@ from halo import Halo
 from alive_progress import alive_bar
 
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import AuthorizedSession
-
-from googleapiclient.discovery import build
-#from googleapiclient.http import MediaFileUpload
-from google.auth.transport.requests import Request
+from google.auth.transport.requests import AuthorizedSession, Request
 
 
 class GooglePhotosApi:
@@ -51,7 +47,8 @@ class GooglePhotosApi:
         # if there is no pickle file with stored credentials, create one using google_auth_oauthlib.flow
         if not self.cred or not self.cred.valid:
             if self.cred and self.cred.expired and self.cred.refresh_token:
-                self.cred.refresh(Request())
+                request=Request()
+                self.cred.refresh(request)
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(self.client_secret_file, self.scopes)
                 self.cred = flow.run_local_server(port=5000, bind_host="0.0.0.0" )
