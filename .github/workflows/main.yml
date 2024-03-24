@@ -26,9 +26,11 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
       - name: Install requirements pip
-        run: pip install -r requirements.txt
+        run: pip install --user -r requirements.txt
       - name: Build 
         run: |
+          python -m site --user-site
+          python -m site
           ls $(python -m site --user-site)/grapheme/data
           grapheme_file_to_include=$(python -m site --user-site)/grapheme/data/grapheme_break_property.json
           echo "this file $grapheme_file_to_include will be added"
