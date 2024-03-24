@@ -85,6 +85,6 @@ as specified in [Google OAuth 2.0 Python Client](https://github.com/googleapis/g
 ## Known Issue as per 24/03/2024
 
 - VSCode error on run from dev container mentioned [here](https://github.com/PaoloOranges/GooglePhotoDownloader?tab=readme-ov-file#docker-dev-container-suggested)
-- Artifacts are not working due to a missing file for *alive_progress* not packaged correctly from PyInstaller 
+- Artifacts are not working due to a missing file for *alive_progress* not packaged correctly from PyInstaller [here](https://github.com/alvinlindstam/grapheme/pull/20#pullrequestreview-1956524023) is the PR that fix the issue on pakcage *grapheme*, used by *alive-progress*
 - Script might not be able to refresh token if expired. delete *sessions* folder or its content to fix it
 - Media downloaded will be placed in a folder called DownloadedMedia. It must not exists, the script will throw an exception if it does exist
