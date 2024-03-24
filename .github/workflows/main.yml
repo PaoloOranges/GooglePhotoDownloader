@@ -29,8 +29,10 @@ jobs:
         run: pip install --user -r requirements.txt
       - name: Build 
         run: |
+          ls $(python -m site --user-site)/grapheme/data
           grapheme_file_to_include=$(python -m site --user-site)/grapheme/data/grapheme_break_property.json
           echo "this file $grapheme_file_to_include will be added"
+          cat $grapheme_file_to_include
           pyinstaller -F --add-data "$grapheme_file_to_include:grapheme/data" main.py
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
