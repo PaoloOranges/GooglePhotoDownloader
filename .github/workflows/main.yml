@@ -28,6 +28,7 @@ jobs:
       - name: Install requirements pip
         run: pip install --user -r requirements.txt
       - name: Build 
+        shell: bash
         run: |
           python -m site --user-site
           grapheme_file_to_include=$(python -m site --user-site)/grapheme/data/grapheme_break_property.json
