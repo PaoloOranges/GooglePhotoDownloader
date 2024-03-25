@@ -30,10 +30,10 @@ jobs:
       - name: Build 
         shell: bash
         run: |
-          pip install -r requirements.txt
+          pip install --target ./temp_pip -r requirements.txt
           pip show pyinstaller
           python -m site --user-site
-          grapheme_file_to_include=$(python -m site --user-site)/grapheme/data/grapheme_break_property.json
+          grapheme_file_to_include=./temp_pip/grapheme/data/grapheme_break_property.json
           echo "this file $grapheme_file_to_include will be added"          
           pyinstaller -F --add-data "$grapheme_file_to_include:grapheme/data" main.py
       - name: Upload a Build Artifact
