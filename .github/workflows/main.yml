@@ -30,6 +30,7 @@ jobs:
       - name: Build 
         shell: bash
         run: |
+          python --version
           python -m site --user-site
           grapheme_file_to_include=$(python -m site --user-site)/grapheme/data/grapheme_break_property.json
           echo "this file $grapheme_file_to_include will be added"          
